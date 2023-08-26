@@ -1,7 +1,14 @@
 <script>
 import HelloWorld from './components/HelloWorld.vue'
-
+import TheVendingMachine from "./components/TheVendingMachine.vue"
+import TheWallet from "./components/TheWallet.vue"
+import TheStockStatus from "./components/TheStockStatus.vue"
 export default{
+  components:{
+    TheVendingMachine, 
+    TheWallet, 
+    TheStockStatus
+  },
   data(){
     return{
       paymentMethod : "",
@@ -39,105 +46,13 @@ export default{
 </script>
 
 <template>
- 
-    <h1 class="text-3xl font-bold underline">
-      Hello world!
-    </h1>
-
-    <div class="p-28 grid grid-cols-2 grid-rows-1 gap-4">
-      <div class="m-auto px-8 py-8 grid grid-cols-1 gap-4 rounded-lg" style="background-color:lightblue;">
-          <!--vending machine -->
-          <div>
-            vending machine 
-          </div>
-
-          <div class="grid grid-cols-1 grid-rows-1 gap-4">
-              <div class="rounded-lg p-4" style="background-color:white;">
-                <button @click="setPaymentMethod()">여기를 눌러 결제수단을 선택해주세요.</button>
-              </div>
-          </div>
-
-          <!-- <div class="grid grid-cols-2 grid-rows-1 gap-4"> -->
-          <div style="width:100%; display: flex; gap:10px">
-              <div style="width:60%; background-color:white;" class="rounded-lg p-4" >잔액(투입금액) 
-                <span>{{paymentMethod == "card" ? "-" : total}}</span>
-              </div>
-              <div style="width:25%; background-color:white;" class="rounded-lg p-4">
-                <span v-if="paymentMethod !== ''">{{paymentMethod == "card" ? "카드":"현금"}} 결제</span>
-              </div>
-              <div style="width:15%; background-color:white;" class="rounded-lg p-4">반환</div>
-          </div>
-
-
-          <div class="grid grid-cols-3 grid-rows-1 gap-4" >
-              <div class="rounded-lg gap-4 p-4" v-for="(drink, index) in drinkList" :key="index" style="background-color:white;" > 
-                
-                  <img :src="drink.imgsrc"/> 
-                
-                {{drink.name}} 
-                {{drink.price}}
-              </div>
-              
-          </div>
-
-          <div class="grid grid-cols-1 grid-rows-1 gap-4">
-              <div class="rounded-lg p-4" style="background-color:white;">out</div>
-          </div>
-      </div>
-
+    <div class="px-24 py-20 grid grid-cols-2 grid-rows-1 gap-4">
+      <the-vending-machine/>
       <div class="grid grid-cols-1 gap-4 ">
-      
-          <div class="m-auto px-8 py-8 gap-4 rounded-lg" style="background-color: lightsteelblue;">
-              음료수 재고(수량 조정 가능)
-              <div class="grid grid-cols-3">
-                <div class="rounded-lg m-2 p-2" v-for="(drink, index) in drinkList" :key="index"  style="background-color: white;"> 
-                  {{drink.name}} 
-                  <div >
-                    <input style="width:100%;" type="number" v-model="drink.count"/>
-                  </div>
-                </div>
-              </div>
-          </div>
-          <div v-if="showWallet" class="m-auto px-8 py-8 grid grid-cols-1 gap-4 rounded-lg" style="background-color:lightgray;">
-         
-          wallet section 
-            
-          <div v-if="paymentMethod == 'card'">
-            card
-           <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-              <img :src="imgcard" style="width: 100px; height: 100px; margin: auto;"/> 
-            </div>
-          </div>
-          <div v-else>
-            money
-            <div class="grid grid-cols-3 gap-4 p-4">
-              <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                  10,000
-              </div>
-              <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                  5,000
-              </div>
-              <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                  1,000
-              </div>
-             
-            </div>
-            <div class="grid grid-cols-2 grid-rows-1 gap-4 p-4">
-               <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                  500
-              </div>
-               <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                  100
-              </div>
-            </div>
-          </div>
-      
-      </div>
+        <the-status-stock/>
+        <the-wallet v-if="showWallet"/>
       </div>
     </div>
-
-<!--wallet -->      
-    
- 
+    <!--wallet -->      
   <!-- <HelloWorld msg="Vite + Vue" /> -->
 </template>
