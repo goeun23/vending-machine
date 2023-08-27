@@ -6,9 +6,15 @@
           </div>
 
           <div class="grid grid-cols-1 grid-rows-1 gap-4">
-              <div class="rounded-lg p-4" style="background-color:white;">
-                <button v-if="paymentMethod !== ''" @click="resetPaymentMethod()">처음으로 돌아가기</button>
-                <button v-else @click="setPaymentMethod()">여기를 눌러 결제수단을 선택해주세요.</button>
+              <div v-if="paymentMethod !== ''" class="rounded-lg p-4" style="background-color:white;">
+                <button  @click="resetPaymentMethod()">처음으로 돌아가기</button>
+              </div>
+              <div v-else class="flex gap-4">
+                <button class="rounded-lg p-4" style="background-color:white;" @click="setPaymentMethod('card')">
+                  카드로 결제하기</button>
+
+                <button class="rounded-lg p-4" style="background-color:white;" @click="setPaymentMethod('money')">
+                  현금으로 결제하기</button>
               </div>
           </div>
 
@@ -89,8 +95,7 @@ export default{
             'drinkDispenseHandler'
           ]), 
     
-        setPaymentMethod(){
-            const paymentMethod = confirm('카드로 결제하시겠습니까?') ? "card" : "money";
+        setPaymentMethod(paymentMethod){
             this.savePaymentMethod(paymentMethod);
             this.setWalletStatus(true);
         }, 

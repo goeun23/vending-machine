@@ -18,7 +18,8 @@ const state = () => ({
     ], 
     machineTotalPrice : 0, 
     restoreMachineToWalletObj : {}, 
-    outputMessage:""
+    outputMessage:"", 
+    messageInterval : null
 })
 
 // getters
@@ -94,6 +95,9 @@ const actions = {
 
       // 모든 음료 선택 불가능 하도록 초기화
       dispatch("updateDrinkStatus");
+
+      // 지갑 비활성화
+      dispatch("setWalletStatus", false);
     }, 
     
     /*
@@ -109,10 +113,11 @@ const actions = {
       const drinkIndex = drinkList.findIndex(x=> x.key == key);
 
       // 재고 삭제의 경우, 남은 음료의 갯수가 0 이상인 경우에만 가능
-      if(method == 'sub' && drinkList[drinkIndex].count > 0){
-          drinkList[drinkIndex].count -= 1;
-      }else{
+      if(method == 'add'){
         drinkList[drinkIndex].count += 1;
+      }
+      if(method == 'sub' && drinkList[drinkIndex].count > 0){
+        drinkList[drinkIndex].count -= 1;
       }
 
       // 음료 재고 현황 저장
@@ -198,48 +203,60 @@ const actions = {
 
       // 음료 out 메세지 초기화
       dispatch("resetOutputMessage");
-    
 
+      try {
+        if(count <= 0){
+          // 음료 out 메세지
+          throw new Error(`${name}의 재고가 없습니다.`) ;
+        }
+        
+        if(paymentMethod == 'money' && totalprice <= 0){
+          throw new Error("금액을 투입해주세요.");
+        }
 
-      if(paymentMethod == 'money' && totalprice == 0){
-        return dispatch("setOutputMessage","금액을 투입해주세요.");
+        if(totalprice - price < 0){
+          throw new Error("잔액이 부족합니다.");
+        }
+
+        //(공통) 음료 재고 -1 
+        dispatch("updateDrinkCount", {key, method:'sub'});
+        
+        // 음료 out 메세지
+        dispatch("setOutputMessage",`${name}을 받으세요.`);
+        
+        // 카드결제 > 돈 계산하지 않고 음료 out 
+        if(paymentMethod == 'card'){
+          return;
+        }
+        
+        // 현금결제 > 잔액 계산, 업데이트
+        totalprice = totalprice - price;
+        commit("saveMachineTotalPrice", totalprice);
+
+        // 현금결제 > 잔액이 0원 -> 반환레버 이벤트 발생
+        if(totalprice == 0){
+          return dispatch("restoreMoneytoWallet")
+        }
+
+        // 잔액 & 음료 상태로 자판기 업데이트
+        dispatch("updateDrinkStatus");
+
+      } catch (error) {
+        return dispatch("setOutputMessage",error.message);
       }
-
-      //(공통) 음료 재고 -1 
-      dispatch("updateDrinkCount", {key, method:'sub'});
-      
-      // 음료 out 메세지
-      dispatch("setOutputMessage",`${name}을 받으세요.`);
-      
-      // 잔액 계산 
-      
-      // 카드결제 > 돈 계산하지 않고 음료 out 
-      if(paymentMethod == 'card'){
-        return;
-      }
-      
-      // 현금결제 > 잔액 계산, 업데이트
-      totalprice = totalprice - price;
-      commit("saveMachineTotalPrice", totalprice);
-
-      // 현금결제 > 잔액이 0원 -> 반환레버 이벤트 발생
-      if(totalprice == 0){
-        return dispatch("restoreMoneytoWallet")
-      }
-
-      // 잔액 & 음료 상태로 자판기 업데이트
-      dispatch("updateDrinkStatus");
-
     },
 
     /*
     * 출력 메세지 세팅 핸들러
      */
     setOutputMessage({commit, state, dispatch}, message){
-      let { outputMessage } = state;
+      let { outputMessage, messageInterval } = state;
       commit("setOutputMessage", outputMessage.concat("<br/>"+message));
 
-      // todo 아마 여기서 초기화 ? 
+      // todo 아마 여기서 초기화 ?       
+      commit("clearMessageInterval");
+      commit("setMessageInterval");
+      
     },
 
     /*
@@ -274,6 +291,10 @@ const actions = {
           }
         }
       }
+
+
+      dispatch("resetOutputMessage", JSON.stringify(restoreMachineToWalletObj));
+
       
       // 거스름돈 반환 객체 저장
       commit("saveMachineToWalletObject", restoreMachineToWalletObj);
@@ -328,7 +349,19 @@ const mutations = {
 
     setOutputMessage(state, payload){
       state.outputMessage = payload;
-    }
+    },
+
+    setMessageInterval({state,dispatch}, payload){
+      state.messageInterval = setTimeout(() => {
+        console.log('reset')
+        dispatch("resetOutputMessage")
+      }, 2000);
+    },
+
+    clearMessageInterval({state}, payload){
+      //clearInterval(state.messageInterval);
+      console.log('todo.......',state)
+    },
 
 
 
