@@ -1,12 +1,22 @@
 const state = () => ({ 
   //showWallet :false, dev temp
   showWallet :true, // 지갑 노출 트리거
+  moneyList: [
+    {text:"💵10,000", value:10000},
+    {text:"💵5,000", value:5000},
+    {text:"💵1,000", value:1000},
+    {text:"🪙500", value:500},
+    {text:"🪙500", value:100},
+  ]
 })
 
 // getters
 const getters = {
   showWallet:(state) => {
     return state.showWallet;
+  },
+  moneyList:(state) => {
+    return state.moneyList;
   },
 }
 // actions

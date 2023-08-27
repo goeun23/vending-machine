@@ -1,34 +1,18 @@
 <template>
 <div v-if="showWallet" class="m-auto px-8 py-8 grid grid-cols-1 gap-4 rounded-lg" style="background-color:lightgray;">
-         
     <span>내 지갑 👛</span> 
-    <div v-if="paymentMethod == 'card'">
-        💳
-        <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-            <img @click="setCardtoMachine(true)" :src="imgcard" style="width: 100px; height: 100px; margin: auto;"/> 
-        </div>
-    </div>
+    <wallet-card
+        v-if="paymentMethod == 'card'" 
+        @setCardtoMachine="setCardtoMachine"
+    />
     <div v-else>
+        <div class="grid grid-cols-5 gap-4 p-4">
         money
-        <div class="grid grid-cols-3 gap-4 p-4">
-            <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                <button @click="addMoneytoMachine(10000)">💵10,000</button>
-            </div>
-            <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                <button @click="addMoneytoMachine(5000)">💵5,000</button>
-            </div>
-            <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                <button @click="addMoneytoMachine(1000)">💵1,000</button>
-            </div>
-            
-        </div>
-        <div class="grid grid-cols-2 grid-rows-1 gap-4 p-4">
-            <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                <button @click="addMoneytoMachine(500)">🪙500</button>
-            </div>
-            <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-                <button @click="addMoneytoMachine(100)">🪙100</button>
-            </div>
+            <wallet-money 
+                v-for="(money, index) in moneyList" :key="index"
+                :money="money"
+                @addMoneytoMachine="addMoneytoMachine"
+            />
         </div>
     </div>
     </div>
@@ -36,11 +20,16 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-
+import walletMoney from "@/components/wallet/walletMoney.vue"
+import walletCard from "@/components/wallet/walletCard.vue"
 export default {
+    components:{
+        walletMoney, 
+        walletCard
+    },
     computed :{
         ...mapGetters('vending', ['paymentMethod']), 
-        ...mapGetters('wallet', ['showWallet']), 
+        ...mapGetters('wallet', ['showWallet', 'moneyList']), 
 
     },
     methods :{
