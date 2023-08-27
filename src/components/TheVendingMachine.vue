@@ -39,7 +39,7 @@
           </div>
 
 
-          <div class="grid grid-cols-4 grid-rows-1 gap-4" >
+          <div class="font-sans grid grid-cols-4 grid-rows-1 gap-4" >
               <div 
                 v-for="(drink, index) in drinkList" :key="index" 
                 style="background-color:white;" 
@@ -47,7 +47,7 @@
                 class="rounded-lg gap-4 p-4" 
                 @click="drinkDispenseHandler(drink)">
                   <img :src="`/${drink.key}.png`" class="m-auto" style="height:150px;"/> 
-                <div class="m-auto text-center">
+                <div class="m-auto text-center grid">
                   <span>{{drink.name}}</span>
                   <span>{{drink.price}}</span>
                 </div>
