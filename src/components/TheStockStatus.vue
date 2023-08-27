@@ -1,7 +1,10 @@
 <template>
     <div class="m-auto px-8 py-8 gap-4 rounded-lg" style="background-color: lightsteelblue;">
         음료수 재고(수량 조정 가능)
-        <div class="grid grid-cols-4" >
+        <div class="grid lg:grid-cols-4 
+            lg:grid-rows-1 
+            sm:grid-cols-none 
+            md:grid-cols-none" >
             <vending-machine-stock-button 
                 v-for="(drink, index) in drinkList" :key="index" 
                 :drink="drink"

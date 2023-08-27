@@ -1,5 +1,5 @@
 <template>
-<div v-if="showWallet" class="m-auto px-8 py-8 grid grid-cols-1 gap-4 rounded-lg" style="background-color:lightgray;">
+<div v-if="showWallet" class="m-auto px-8 py-8 grid grid-cols-1 gap-4 rounded-lg bg-gray-200">
     <span>내 지갑 👛</span> 
     <wallet-card
         v-if="paymentMethod == 'card'" 
@@ -33,13 +33,7 @@ export default {
 
     },
     methods :{
-        ...mapActions('vending', [ 'setCardtoMachine']),
         ...mapActions('wallet', ['addMoneytoMachine', 'setCardtoMachine'])
     },
-    data(){
-        return {
-            imgcard : "/card.png",
-        }
-    }
 }
 </script>

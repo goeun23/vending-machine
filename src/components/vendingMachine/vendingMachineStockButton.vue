@@ -1,5 +1,5 @@
 <template>
-<div style="background-color:white" class="rounded-lg m-2 p-2 custom-number-input w-32" >
+<div class="rounded-lg m-2 p-2 custom-number-input w-32 bg-white" >
     <label for="custom-input-number" class="w-full text-gray-700 text-sm font-semibold">{{drink.name}}</label>
     <div class="flex flex-row h-10 w-full rounded-lg relative bg-transparent mt-1">
         <button @click="$emit('updateDrinkCount', {key: drink.key, method : 'sub'})" data-action="decrement" class=" bg-gray-300 text-gray-600 hover:text-gray-700 hover:bg-gray-400 h-full w-20 rounded-l cursor-pointer outline-none">

@@ -20,7 +20,19 @@ export default{
 </script>
 
 <template>
-    <div class="px-24 py-20 grid grid-cols-2 grid-rows-1 gap-4">
+    <div class="
+      grid grid-rows-1 gap-4 w-full h-full max-w-[85rem] 
+      sm:px-6 
+      sm:grid-cols-none
+      sm:mx-auto
+      sm:px-10
+      sm:py-10
+      md:grid-cols-none 
+      md:p-10
+      lg:px-24 
+      lg:py-20 
+      lg:px-8 mx-auto 
+      lg:grid-cols-2">
       <!--자판기 -->  
       <the-vending-machine/>
 

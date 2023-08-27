@@ -1,5 +1,5 @@
 <template>
-    <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
+    <div class="rounded-lg gap-4 p-4 bg-white"> 
         <button @click="$emit('addMoneytoMachine',money.value)">{{money.text}}</button>
     </div>
 </template>

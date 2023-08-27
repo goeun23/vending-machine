@@ -5,16 +5,16 @@ const state = () => ({
 
   drinkList : [
       {
-          key:"coffee", name : "커피", price : 900, count:19, active : false
+          key:"coffee", name : "커피", price : 900, count:9, active : false
       },
       {
-          key:"coke", name : "콜라", price : 1000, count:10, active : false
+          key:"coke", name : "콜라", price : 1000, count:5, active : false
       },
       {
           key:"water", name : "물", price : 900, count:4, active : false
       }, 
       {
-          key:"potion", name : "절대물약", price : 10000000000, count:1, active : false
+          key:"potion", name : "힐링포션", price : 100000000, count:1, active : false
       }
   ], 
   machineTotalPrice : 0,          // 자판기 투입 금액
@@ -68,23 +68,7 @@ const actions = {
         commit("savePaymentMethod", paymentMethod);
     },
 
-    /*
-     * 카드 투입 상태 업데이트
-    */
-    setCardtoMachine({commit, dispatch}, isPaymentCardInput){
-      commit("setCardPaymentInput", isPaymentCardInput);
-      
-      // 카드의 경우, 금액 한도를 500만원으로 지정
-      commit("saveMachineTotalPrice", 5000000);
-
-      //dev temp dispatch("setWalletStatus", true)
-
-      // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
-      dispatch("updateDrinkStatus");
-
-      // 결제 가능 시간을 10초로 세팅
-      dispatch("setAvailablePaymentTimer", 10);
-    },
+    
 
     /*
     * 결제 가능 시간을 ${payload}초로 세팅

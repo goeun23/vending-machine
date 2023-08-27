@@ -40,11 +40,29 @@ const actions = {
     commit("vending/saveMachineTotalPrice", machineTotalPrice, {root:true})
 
     // (자판기) 재고, 투입된 가격으로 선택 가능한 음료 업데이트
-    dispatch("vending/updateDrinkStatus",{},{root:true});
+    dispatch("vending/updateDrinkStatus",null,{root:true});
 
     // (자판기) 결제 가능 시간을 10초로 세팅
     dispatch("vending/setAvailablePaymentTimer", 10, {root:true})
   },
+
+    /*
+     * (지갑) 카드 투입 이벤트 핸들러
+    */
+    setCardtoMachine({commit, dispatch}, isPaymentCardInput){
+      commit("vending/setCardPaymentInput", isPaymentCardInput, {root:true});
+      
+      // 카드의 경우, 금액 한도를 500만원으로 지정
+      commit("vending/saveMachineTotalPrice", 5000000, {root:true});
+
+      //dev temp dispatch("setWalletStatus", true)
+
+      // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
+      dispatch("vending/updateDrinkStatus",null,{root:true});
+
+      // 결제 가능 시간을 10초로 세팅
+      dispatch("vending/setAvailablePaymentTimer", 10, {root:true});
+    },
   
 }
 
