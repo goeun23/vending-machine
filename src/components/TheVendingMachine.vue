@@ -33,6 +33,9 @@
               <div style="width:25%; background-color:white;" class="rounded-lg p-4">
                 <span v-if="paymentMethod !== ''">{{paymentMethod == "card" ? "카드":"현금"}} 결제</span>
               </div>
+              <div style="width:25%; background-color:white;" class="rounded-lg p-4">
+                <span>{{availablePaymentTime}}</span>
+              </div>
               <div style="width:15%; background-color:white;" class="rounded-lg p-4">
                 <button @click="restorePaymentoWallet()">반환</button>
               </div>
@@ -85,7 +88,8 @@ export default{
             'machineTotalPrice', 
             'restoreMachineToWalletObj',
             'outputMessage', 
-            'isPaymentCardInput'
+            'isPaymentCardInput',
+            'availablePaymentTime'
         ]), 
     },
     methods: {

@@ -1,8 +1,8 @@
 
 const state = () => ({
   //paymentMethod : "",
-  paymentMethod : "card",// 결제수간
-  //showWallet :false,
+  paymentMethod : "money",// 결제수단 
+  //showWallet :false, dev temp
   showWallet :true, // 지갑 노출 트리거
   drinkList : [
       {
@@ -18,11 +18,13 @@ const state = () => ({
           key:"potion", name : "절대물약", price : 10000000000, count:1, active : false
       }
   ], 
-  machineTotalPrice : 0, // 자판기 투입 금액
-  restoreMachineToWalletObj : {}, 
-  isPaymentCardInput : false, // 카드 결제에서 카드 지불 여부
-  outputMessage:"", // 결과 메세지
-  messageInterval : null // 결과 메세지 타이머 
+  machineTotalPrice : 0,          // 자판기 투입 금액
+  restoreMachineToWalletObj : {}, // (현금) 반환 금액 객체
+  isPaymentCardInput : false,     // (카드) 카드 투입 여부
+  outputMessage:"",               // 결과 메세지
+  messageInterval : null,          // 결과 메세지 타이머
+  availablePaymentTime : 0,        // 결제 가능 시간
+  availablePaymentInterval : null // 결제 가능 시간 타이머
 })
 
 // getters
@@ -53,6 +55,10 @@ const getters = {
   
   isPaymentCardInput:(state) => {
     return state.isPaymentCardInput;
+  },
+
+  availablePaymentTime:(state) => {
+    return state.availablePaymentTime;
   }
 }
 
@@ -80,9 +86,19 @@ const actions = {
 
       // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
       dispatch("updateDrinkStatus");
+
+      // 결제 가능 시간을 10초로 세팅
+      dispatch("setAvailablePaymentTimer", 10);
     },
 
-  /*
+    /*
+    * 결제 가능 시간을 ${payload}초로 세팅
+    */
+    setAvailablePaymentTimer({commit}, payload){
+        commit("setAvailablePaymentTimer", payload);
+    },
+
+    /*
     * 지갑의 노출 여부 결정
     */
     setWalletStatus({commit}, payload){
@@ -150,6 +166,9 @@ const actions = {
 
       // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
       dispatch("updateDrinkStatus");
+
+      // 결제 가능 시간을 10초로 세팅
+      dispatch("setAvailablePaymentTimer", 10)
     },
 
     /*
@@ -194,7 +213,7 @@ const actions = {
       const {count, price, key, name} = drink;
       
       // 결제방법, 자판기에 투입된 총 금액
-      const {paymentMethod, drinkList} = state;
+      const {paymentMethod, drinkList, isPaymentCardInput} = state;
 
 
       let {machineTotalPrice : totalprice} = state;
@@ -214,6 +233,11 @@ const actions = {
           throw new Error("금액을 투입해주세요.");
         }
 
+        if(paymentMethod == 'card' && !isPaymentCardInput){
+          // error exception : (카드) 카드가 투입되지 않은 경우
+          throw new Error("결제할 카드를 투입해주세요.");
+        }
+
         if(totalprice - price < 0){
           // error exception : (현금) 잔액이 부족하거나, (카드) 한도 초과된 상품의 경우
           throw paymentMethod == 'card'?
@@ -225,7 +249,7 @@ const actions = {
         dispatch("updateDrinkCount", {key, method:'sub'});
         
         // 음료 out 메세지
-        dispatch("setOutputMessage",`${name}을 받으세요.`);
+        dispatch("setOutputMessage",`${name}을(를) 받으세요.`);
         
         // 잔액 계산, 업데이트
         totalprice = totalprice - price;
@@ -235,7 +259,7 @@ const actions = {
         dispatch("updateDrinkStatus");
         
         // 잔액이 0원, 카드결제 -> 반환레버 이벤트 발생
-        if(totalprice == 0 || paymentMethod == 'card'){
+        if(totalprice == 0){
           return dispatch("restorePaymentoWallet")
         }
 
@@ -253,10 +277,10 @@ const actions = {
       // 출력메세지 세팅
       commit("setOutputMessage", outputMessage.concat("<br/>"+message));
 
-      // 인터벌 스택 초기화
-      commit("clearMessageInterval");
+      // 타임아웃 스택 초기화
+      commit("clearInterval", 'messageInterval');
 
-      // 2초 후 메세지가 사라지도록 인터벌 세팅 
+      // 2초 후 메세지가 사라지도록 타임아웃 세팅 
       commit("setMessageInterval");
       
     },
@@ -274,21 +298,23 @@ const actions = {
      */
     restorePaymentoWallet({commit, state, dispatch}, money){
       // 자판기에 투입된 총 금액
-      const {paymentMethod} = state;
-      let {machineTotalPrice:totalprice} = state;
-      let outputMessage;
+      const { paymentMethod, isPaymentCardInput } = state;
+      let { machineTotalPrice:totalprice } = state;
+      let outputMessage = "";
       
       // 안내메세지 노출 영역 초기화
-      dispatch("resetOutputMessage", JSON.stringify(restoreMachineToWalletObj));
+      dispatch("resetOutputMessage");
       
       if(paymentMethod == 'card'){
         // 카드 반환
-        commit("setCardPaymentInput", false);
-        outputMessage = "카드가 반환되었습니다."
+        if(isPaymentCardInput){
+          commit("setCardPaymentInput", false);
+          outputMessage = "카드가 반환되었습니다."
+        }
       }else{
         const walletList = [10000, 5000, 1000, 500, 100];
         // 거스름돈 반환 객체
-        let restoreMachineToWalletObj = {}
+        let restoreMachineToWalletObj = {};
 
         for(let i = 0; i< walletList.length; i++){
           const money = walletList[i];
@@ -309,6 +335,9 @@ const actions = {
 
       // 모든 음료 선택 불가능 하도록 초기화
       dispatch("updateDrinkStatus");
+
+      // 결제 가능 시간 인터벌 초기화
+      commit("clearInterval", 'availablePaymentInterval');
     }
     
 }
@@ -347,9 +376,12 @@ const mutations = {
       }, 2000);
     },
 
-    clearMessageInterval(state, payload){
+    clearInterval(state, payload){
       // 등록된 인터벌 clear
-      clearInterval(state.messageInterval);
+      if(payload == 'availablePaymentInterval'){
+        state.availablePaymentTime = 0;
+      }
+      clearInterval(state[`${payload}`]);
     },
 
     setCardPaymentInput(state, payload){
@@ -357,6 +389,19 @@ const mutations = {
       state.isPaymentCardInput = payload;
     },
 
+    setAvailablePaymentTimer(state, payload){
+      console.log('clear', state.availablePaymentInterval)
+      state.availablePaymentTime = payload;
+      clearInterval(state.availablePaymentInterval)
+      
+      state.availablePaymentInterval = setInterval(()=> {
+        if(state.availablePaymentTime == 0){
+          this.dispatch('vending/restorePaymentoWallet')
+          return clearInterval(state.availablePaymentInterval);
+        }
+        state.availablePaymentTime -= 1;
+      }, 1000)
+    }, 
 }
 
 export default {
