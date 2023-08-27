@@ -1,46 +1,32 @@
 
 const state = () => ({
-  isShowSpinner : false,
-  items: [],
-  checkoutStatus: null, 
-    paymentMethod : "",
-    showWallet :false,
-    drinkList : [
-        {
-           key:"coffee", name : "커피", price : 900, count:19, active : false
-        },
-        {
-            key:"coke", name : "콜라", price : 1000, count:10, active : false
-        },
-        {
-            key:"water", name : "물", price : 900, count:4, active : false
-        }
-    ], 
-    machineTotalPrice : 0, 
-    restoreMachineToWalletObj : {}, 
-    outputMessage:"", 
-    messageInterval : null
+  //paymentMethod : "",
+  paymentMethod : "card",// 결제수간
+  //showWallet :false,
+  showWallet :true, // 지갑 노출 트리거
+  drinkList : [
+      {
+          key:"coffee", name : "커피", price : 900, count:19, active : false
+      },
+      {
+          key:"coke", name : "콜라", price : 1000, count:10, active : false
+      },
+      {
+          key:"water", name : "물", price : 900, count:4, active : false
+      }, 
+      {
+          key:"potion", name : "절대물약", price : 10000000000, count:1, active : false
+      }
+  ], 
+  machineTotalPrice : 0, // 자판기 투입 금액
+  restoreMachineToWalletObj : {}, 
+  isPaymentCardInput : false, // 카드 결제에서 카드 지불 여부
+  outputMessage:"", // 결과 메세지
+  messageInterval : null // 결과 메세지 타이머 
 })
 
 // getters
 const getters = {
-//   cartProducts: (state, getters, rootState) => {
-//     return state.items.map(({ id, quantity }) => {
-//       const product = rootState.products.all.find(product => product.id === id)
-//       return {
-//         id: product.id,
-//         title: product.title,
-//         price: product.price,
-//         quantity
-//       }
-//     })
-//   },
-
-//   cartTotalPrice: (state, getters) => {
-//     return getters.cartProducts.reduce((total, product) => {
-//       return total + product.price * product.quantity
-//     }, 0)
-//   }, 
   drinkList:(state) => {
     return state.drinkList;
   },
@@ -63,26 +49,42 @@ const getters = {
 
   outputMessage:(state) => {
     return state.outputMessage;
+  }, 
+  
+  isPaymentCardInput:(state) => {
+    return state.isPaymentCardInput;
   }
-//   spinnerStatus:(state) => {
-//     return state.isShowSpinner;
-//   }
 }
 
 // actions
 const actions = {
-     /*
+    /*
      * 결제 수단 저장
      * card : 카드결제
      * money : 현금결제
-     */
+    */
     savePaymentMethod({commit}, paymentMethod){
         commit("savePaymentMethod", paymentMethod);
     },
 
     /*
-     * 지갑의 노출 여부 결정
-     */
+     * 카드 투입 상태 업데이트
+    */
+    setCardtoMachine({commit, dispatch}, isPaymentCardInput){
+      commit("setCardPaymentInput", isPaymentCardInput);
+      
+      // 카드의 경우, 금액 한도를 500만원으로 지정
+      commit("saveMachineTotalPrice", 5000000);
+
+      //dispatch("setWalletStatus", true)
+
+      // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
+      dispatch("updateDrinkStatus");
+    },
+
+  /*
+    * 지갑의 노출 여부 결정
+    */
     setWalletStatus({commit}, payload){
         commit("setWalletStatus", payload);
     }, 
@@ -98,10 +100,16 @@ const actions = {
 
       // 지갑 비활성화
       dispatch("setWalletStatus", false);
+
+      // 투입금액 초기화
+      dispatch("saveMachineTotalPrice", 0)
+
+      // 메세지 인터벌 초기화
+      dispatch("resetOutputMessage")
     }, 
     
     /*
-     * 음료 재고 현황에서 음료를 추가, 삭제 작업 이벤트 핸들러
+     * 음료 재고 현황 > 음료 추가, 삭제 이벤트 핸들러
      * payload : {
         * key
         * method : 'add' 추가 , 'sub' 삭제
@@ -135,8 +143,7 @@ const actions = {
     addMoneytoMachine({commit, state, dispatch}, money){
       const paymentMethod = state.paymentMethod;
       let machineTotalPrice = state.machineTotalPrice;
-      if(paymentMethod == 'card') return;
-        machineTotalPrice += money;
+      machineTotalPrice += money;
       
       // 총 금액 저장
       commit("saveMachineTotalPrice", machineTotalPrice);
@@ -152,18 +159,14 @@ const actions = {
      */
     updateDrinkStatus({commit, state, dispatch}){
       // 결제방식
-      const {paymentMethod, machineTotalPrice } = state;
+      const {paymentMethod, machineTotalPrice, isPaymentCardInput } = state;
       let { drinkList } = state;
       let availableDrinkList = []
 
-      if(paymentMethod == 'card'){
-        // 카드결제
+      if(paymentMethod == 'card' && isPaymentCardInput){
+        // 카드결제, 재고가 있는 모든 제품 활성화
         availableDrinkList = drinkList.map(x => { 
-            if(x.count > 0){
-              x.active = true;
-            }else{
-              x.active = false;
-            }
+            x.active = x.count > 0 ? true: false;
             return x;
           })
       }else{
@@ -181,10 +184,6 @@ const actions = {
 
       // 음료 재고 현황 저장
       commit('saveDrinkList', availableDrinkList);
-      
-
-      // 총 금액 저장
-      commit("saveMachineTotalPrice", machineTotalPrice);
 
     },
 
@@ -194,28 +193,32 @@ const actions = {
       // 선택한 음료의 정보
       const {count, price, key, name} = drink;
       
-      // 자판기에 투입된 총 금액, 결제방법
+      // 결제방법, 자판기에 투입된 총 금액
       const {paymentMethod, drinkList} = state;
 
 
       let {machineTotalPrice : totalprice} = state;
 
-
-      // 음료 out 메세지 초기화
+      // 메세지 출력 초기화
       dispatch("resetOutputMessage");
 
       try {
+        
         if(count <= 0){
-          // 음료 out 메세지
+          // error exception : 재고가 없을 경우
           throw new Error(`${name}의 재고가 없습니다.`) ;
         }
         
         if(paymentMethod == 'money' && totalprice <= 0){
+          // error exception : (현금) 투입된 금액이 없을 경우
           throw new Error("금액을 투입해주세요.");
         }
 
         if(totalprice - price < 0){
-          throw new Error("잔액이 부족합니다.");
+          // error exception : (현금) 잔액이 부족하거나, (카드) 한도 초과된 상품의 경우
+          throw paymentMethod == 'card'?
+            new Error("한도가 초과된 상품입니다.")
+            :new Error("잔액이 부족합니다.")
         }
 
         //(공통) 음료 재고 -1 
@@ -224,24 +227,19 @@ const actions = {
         // 음료 out 메세지
         dispatch("setOutputMessage",`${name}을 받으세요.`);
         
-        // 카드결제 > 돈 계산하지 않고 음료 out 
-        if(paymentMethod == 'card'){
-          return;
-        }
-        
-        // 현금결제 > 잔액 계산, 업데이트
+        // 잔액 계산, 업데이트
         totalprice = totalprice - price;
         commit("saveMachineTotalPrice", totalprice);
 
-        // 현금결제 > 잔액이 0원 -> 반환레버 이벤트 발생
-        if(totalprice == 0){
-          return dispatch("restoreMoneytoWallet")
-        }
-
         // 잔액 & 음료 상태로 자판기 업데이트
         dispatch("updateDrinkStatus");
+        
+        // 잔액이 0원, 카드결제 -> 반환레버 이벤트 발생
+        if(totalprice == 0 || paymentMethod == 'card'){
+          return dispatch("restorePaymentoWallet")
+        }
 
-      } catch (error) {
+      } catch (error) { // error message throw
         return dispatch("setOutputMessage",error.message);
       }
     },
@@ -251,10 +249,14 @@ const actions = {
      */
     setOutputMessage({commit, state, dispatch}, message){
       let { outputMessage, messageInterval } = state;
+
+      // 출력메세지 세팅
       commit("setOutputMessage", outputMessage.concat("<br/>"+message));
 
-      // todo 아마 여기서 초기화 ?       
+      // 인터벌 스택 초기화
       commit("clearMessageInterval");
+
+      // 2초 후 메세지가 사라지도록 인터벌 세팅 
       commit("setMessageInterval");
       
     },
@@ -270,36 +272,37 @@ const actions = {
     /*
       * (자판기) 반환레버 동작 이벤트 핸들러
      */
-    restoreMoneytoWallet({commit, state, dispatch}, money){
+    restorePaymentoWallet({commit, state, dispatch}, money){
       // 자판기에 투입된 총 금액
       const {paymentMethod} = state;
       let {machineTotalPrice:totalprice} = state;
+      let outputMessage;
       
-      // 거스름돈 반환 객체
-      let restoreMachineToWalletObj = state.restoreMachineToWalletObj;
-
+      // 안내메세지 노출 영역 초기화
+      dispatch("resetOutputMessage", JSON.stringify(restoreMachineToWalletObj));
+      
       if(paymentMethod == 'card'){
-        // 카드 반환 레버 선택시 로직 
+        // 카드 반환
+        commit("setCardPaymentInput", false);
+        outputMessage = "카드가 반환되었습니다."
       }else{
         const walletList = [10000, 5000, 1000, 500, 100];
+        // 거스름돈 반환 객체
+        let restoreMachineToWalletObj = {}
+
         for(let i = 0; i< walletList.length; i++){
           const money = walletList[i];
-          const restore = parseInt(totalprice/money)
+          const restore = parseInt(totalprice/money) // 금액 몫 저장
           if(restore > 0){
-            restoreMachineToWalletObj[money] = restore;// 몫 저장
+            restoreMachineToWalletObj[money] = restore;
             totalprice = totalprice % money; // 잔액 = 몫으로 나눈 나머지
           }
         }
+        outputMessage = `잔액 ${JSON.stringify(restoreMachineToWalletObj)}를 받으세요.`
       }
-
-
-      dispatch("resetOutputMessage", JSON.stringify(restoreMachineToWalletObj));
-
       
-      // 거스름돈 반환 객체 저장
-      commit("saveMachineToWalletObject", restoreMachineToWalletObj);
-
-      dispatch("setOutputMessage", JSON.stringify(restoreMachineToWalletObj));
+      // 반환 메세지 노출
+      dispatch("setOutputMessage", outputMessage);
 
       // 남은 잔액 반환 후 자판기에 남은 금액을 0으로 초기화
       commit("saveMachineTotalPrice", 0);
@@ -307,70 +310,53 @@ const actions = {
       // 모든 음료 선택 불가능 하도록 초기화
       dispatch("updateDrinkStatus");
     }
-
-
-
-//   gotoSearchResult({state, commit}, productSearchItem){
-//     // 상품 검색 목록 저장
-//     commit('setProductSearchItem', productSearchItem);
-//     // 상품 검색 결과로 리다이렉팅
-//   }, 
-
-//   updateSpinnerStatus({state, commit}, spinnerStatus){
-//     // 상품 검색 목록 저장
-//     commit('updateSpinnerStatus', spinnerStatus);
-//     // 상품 검색 결과로 리다이렉팅
-//   }, 
-
-  
+    
 }
 
 // mutations
 const mutations = {
     savePaymentMethod(state, payload){
+        // 결제수단 저장
         state.paymentMethod = payload;
     },
 
     setWalletStatus(state, payload){
+        // 지갑 노출 상태 세팅
         state.showWallet = payload;
     },
 
     saveDrinkList(state, payload){
-        state.drinkList = payload;
+      // 음료 재고, 수량 저장
+      state.drinkList = payload;
     },
 
     saveMachineTotalPrice(state, payload){
+      // 자판기에 투입된 금액 저장
       state.machineTotalPrice = payload;
     }, 
 
-    saveMachineToWalletObject(state, payload){
-      state.restoreMachineToWalletObj = {...payload};
-    },
-
     setOutputMessage(state, payload){
+      // 노출 메세지 세팅
       state.outputMessage = payload;
     },
 
-    setMessageInterval({state,dispatch}, payload){
+    setMessageInterval(state, payload){
+      // 메세지 인터벌 세팅(2초후 사라짐)
       state.messageInterval = setTimeout(() => {
-        console.log('reset')
-        dispatch("resetOutputMessage")
+        this.dispatch("vending/resetOutputMessage")
       }, 2000);
     },
 
-    clearMessageInterval({state}, payload){
-      //clearInterval(state.messageInterval);
-      console.log('todo.......',state)
+    clearMessageInterval(state, payload){
+      // 등록된 인터벌 clear
+      clearInterval(state.messageInterval);
     },
 
+    setCardPaymentInput(state, payload){
+      // 자판기-> 카드 투입 여부 상태 세팅
+      state.isPaymentCardInput = payload;
+    },
 
-
-//   setProductSearchItem(state, payload){
-//     state.productSearchItem = {...payload};
-//   },
-//   updateSpinnerStatus(state, payload){
-//     state.isShowSpinner = payload;
-//   }
 }
 
 export default {

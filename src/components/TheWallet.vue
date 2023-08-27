@@ -5,7 +5,7 @@
     <div v-if="paymentMethod == 'card'">
     card
     <div class="rounded-lg gap-4 p-4" style="background-color:white;" > 
-        <img :src="imgcard" style="width: 100px; height: 100px; margin: auto;"/> 
+        <img @click="setCardtoMachine(true)" :src="imgcard" style="width: 100px; height: 100px; margin: auto;"/> 
     </div>
     </div>
     <div v-else>
@@ -42,7 +42,7 @@ export default {
         ...mapGetters('vending', ['paymentMethod', 'showWallet']), 
     },
     methods :{
-        ...mapActions('vending', ['addMoneytoMachine'])
+        ...mapActions('vending', ['addMoneytoMachine', 'setCardtoMachine'])
     },
     data(){
         return {
