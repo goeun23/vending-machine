@@ -39,10 +39,13 @@ import { mapActions, mapGetters } from 'vuex'
 
 export default {
     computed :{
-        ...mapGetters('vending', ['paymentMethod', 'showWallet']), 
+        ...mapGetters('vending', ['paymentMethod']), 
+        ...mapGetters('wallet', ['showWallet']), 
+
     },
     methods :{
-        ...mapActions('vending', ['addMoneytoMachine', 'setCardtoMachine'])
+        ...mapActions('vending', [ 'setCardtoMachine']),
+        ...mapActions('wallet', ['addMoneytoMachine', 'setCardtoMachine'])
     },
     data(){
         return {

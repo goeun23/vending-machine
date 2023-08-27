@@ -2,8 +2,7 @@
 const state = () => ({
   //paymentMethod : "",
   paymentMethod : "money",// 결제수단 
-  //showWallet :false, dev temp
-  showWallet :true, // 지갑 노출 트리거
+
   drinkList : [
       {
           key:"coffee", name : "커피", price : 900, count:19, active : false
@@ -35,10 +34,6 @@ const getters = {
 
   paymentMethod:(state) => {
     return state.paymentMethod;
-  },
-
-  showWallet:(state) => {
-    return state.showWallet;
   },
 
   machineTotalPrice:(state) => {
@@ -82,7 +77,7 @@ const actions = {
       // 카드의 경우, 금액 한도를 500만원으로 지정
       commit("saveMachineTotalPrice", 5000000);
 
-      //dispatch("setWalletStatus", true)
+      //dev temp dispatch("setWalletStatus", true)
 
       // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
       dispatch("updateDrinkStatus");
@@ -98,12 +93,7 @@ const actions = {
         commit("setAvailablePaymentTimer", payload);
     },
 
-    /*
-    * 지갑의 노출 여부 결정
-    */
-    setWalletStatus({commit}, payload){
-        commit("setWalletStatus", payload);
-    }, 
+    
 
     /*
      * 결제 수단 초기화(처음으로)
@@ -114,8 +104,8 @@ const actions = {
       // 모든 음료 선택 불가능 하도록 초기화
       dispatch("updateDrinkStatus");
 
-      // 지갑 비활성화
-      dispatch("setWalletStatus", false);
+      // (지갑) 비활성화
+      dispatch("wallet/setWalletStatus", false,{root:true});
 
       // 투입금액 초기화
       dispatch("saveMachineTotalPrice", 0)
@@ -153,23 +143,7 @@ const actions = {
     },
     
      
-    /*
-     * (지갑) 지갑 -> 자판기로 돈 투입 
-     */
-    addMoneytoMachine({commit, state, dispatch}, money){
-      const paymentMethod = state.paymentMethod;
-      let machineTotalPrice = state.machineTotalPrice;
-      machineTotalPrice += money;
-      
-      // 총 금액 저장
-      commit("saveMachineTotalPrice", machineTotalPrice);
-
-      // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
-      dispatch("updateDrinkStatus");
-
-      // 결제 가능 시간을 10초로 세팅
-      dispatch("setAvailablePaymentTimer", 10)
-    },
+    
 
     /*
      * (재고현황) 재고, 금액으로 선택 가능한 음료 상태 업데이트
@@ -347,11 +321,6 @@ const mutations = {
     savePaymentMethod(state, payload){
         // 결제수단 저장
         state.paymentMethod = payload;
-    },
-
-    setWalletStatus(state, payload){
-        // 지갑 노출 상태 세팅
-        state.showWallet = payload;
     },
 
     saveDrinkList(state, payload){

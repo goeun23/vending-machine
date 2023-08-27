@@ -20,9 +20,6 @@
 
           <template v-if="paymentMethod !== ''">
           
-          
-
-          <!-- <div class="grid grid-cols-2 grid-rows-1 gap-4"> -->
           <div style="width:100%; display: flex; gap:10px">
               <div v-if="paymentMethod == 'money'" style="width:60%; background-color:white;" class="rounded-lg p-4" >잔액(투입금액) 
                 <span>{{machineTotalPrice}}</span>
@@ -82,7 +79,6 @@ export default{
     computed :{
         ...mapGetters('vending', 
           [
-            'showWallet', 
             'drinkList', 
             'paymentMethod', 
             'machineTotalPrice', 
@@ -91,16 +87,18 @@ export default{
             'isPaymentCardInput',
             'availablePaymentTime'
         ]), 
+        ...mapGetters('vending', ['showWallet']), 
     },
     methods: {
         ...mapActions('vending', 
           [
             'savePaymentMethod', 
-            'setWalletStatus', 
             'resetPaymentMethod', 
             'restorePaymentoWallet', 
             'drinkDispenseHandler', 
-          ]), 
+          ]),
+
+        ...mapActions('wallet', ['setWalletStatus']), 
     
         setPaymentMethod(paymentMethod){
             this.savePaymentMethod(paymentMethod);
