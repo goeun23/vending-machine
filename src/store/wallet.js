@@ -1,12 +1,11 @@
 const state = () => ({ 
-  //showWallet :false, dev temp
-  showWallet :true, // 지갑 노출 트리거
+  showWallet :false, // 지갑 노출 트리거
   moneyList: [
     {text:"💵10,000", value:10000},
     {text:"💵5,000", value:5000},
     {text:"💵1,000", value:1000},
     {text:"🪙500", value:500},
-    {text:"🪙500", value:100},
+    {text:"🪙100", value:100},
   ]
 })
 
@@ -55,7 +54,7 @@ const actions = {
       // 카드의 경우, 금액 한도를 500만원으로 지정
       commit("vending/saveMachineTotalPrice", 5000000, {root:true});
 
-      //dev temp dispatch("setWalletStatus", true)
+      dispatch("setWalletStatus", true)
 
       // 재고, 투입된 가격으로 선택 가능한 음료 업데이트
       dispatch("vending/updateDrinkStatus",null,{root:true});

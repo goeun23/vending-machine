@@ -7,7 +7,6 @@
     />
     <div v-else>
         <div class="grid grid-cols-5 gap-4 p-4">
-        money
             <wallet-money 
                 v-for="(money, index) in moneyList" :key="index"
                 :money="money"

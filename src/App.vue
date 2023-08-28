@@ -1,5 +1,4 @@
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 import TheVendingMachine from "./components/TheVendingMachine.vue"
 import TheWallet from "./components/TheWallet.vue"
 import TheStockStatus from "./components/TheStockStatus.vue"

@@ -1,7 +1,6 @@
 
 const state = () => ({
-  //paymentMethod : "",
-  paymentMethod : "card",// 결제수단 
+  paymentMethod : "",// 결제수단 
 
   drinkList : [
       {
